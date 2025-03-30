@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "title": "Producto Nuevo",
+    "description": "Este es un producto de prueba.",
+    "code": "DEF456",
+    "price": 35,
+    "status": true,
+    "stock": 45,
+    "category": "Categoría Test",
+    "thumbnails": [
+      "image1.jpg",
+      "image2.jpg"
+    ]
+  }
+]
