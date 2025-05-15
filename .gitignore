@@ -1,2 +1,23 @@
+# Node.js
 node_modules/
+npm-debug.log
+yarn-error.log
+
+# Entorno local
 .env
+
+# MongoDB files (no es necesario almacenar los archivos de la base de datos)
+data/
+
+# Archivos de logs
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+
+# Otros archivos temporales o de configuraciones que puedan generarse
+*.tmp

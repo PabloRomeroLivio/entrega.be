@@ -1,26 +1,27 @@
-const CartManager = require('./managers/CartManager');
-const cartManager = new CartManager('./data/carts.json');
-const express = require('express');
-const app = express();
-const productsRouter = require('./routes/products.routes'); 
-const cartsRouter = require('./routes/carts.routes');
-const exphbs = require('express-handlebars');
-const path = require('path');
-const ProductManager = require('./managers/ProductManager');
-const productManager = new ProductManager('./data/products.json');
+import express from 'express';
+import mongoose from 'mongoose';
+import handlebars from 'express-handlebars';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+import connectDB from './config/db.js';
+import productRouter from './routes/products.routes.js';
+import cartRouter from './routes/carts.routes.js';
+import viewsRouter from './routes/views.router.js';
+import dotenv from 'dotenv';
+import session from 'express-session';
+import authRouter from './routes/auth.routes.js';
+
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
 const PORT = 8080;
 
-const http = require('http');
-const { Server } = require('socket.io');
-
-const server = http.createServer(app);
-const io = new Server(server);
-
-
-app.engine('handlebars', exphbs.engine());
-app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, 'views'));
+connectDB();
 
 
 app.use(express.json());
@@ -28,70 +29,59 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.get('/', async (req, res) => {
-  const products = await productManager.getProducts();
-  res.render('home', { title: 'Productos', products });
+
+
+app.use('/api/auth', authRouter);
+
+
+app.engine('handlebars', handlebars.engine());
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(session({
+  secret: 'tu-secreto-aqui',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 1000 * 60 * 60 }
+}));
+import CartManager from './managers/CartManager.js';
+
+const cartManager = new CartManager();
+
+app.use(async (req, res, next) => {
+  try {
+    if (!req.session.cartId) {
+      const newCart = await cartManager.createCart();
+      req.session.cartId = newCart._id.toString();
+      console.log('Carrito creado y asignado a sesión:', req.session.cartId);
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+app.use((req, res, next) => {
+  res.locals.cartId = req.session.cartId || null;
+  next();
 });
 
 
-app.get('/realtimeproducts', async (req, res) => {
-  const products = await productManager.getProducts();
-  res.render('realTimeProducts', { title: 'Productos en tiempo real', products });
+app.use('/api/products', productRouter);
+app.use('/api/carts', cartRouter);
+
+
+app.use('/', viewsRouter);
+
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
-
-app.use('/api/products', productsRouter);
-app.use('/api/carts', cartsRouter);
-
-
-app.post('/api/carts', async (req, res) => {
-  const newCart = await cartManager.createCart();
-  res.status(201).json(newCart);
-});
-
-app.get('/api/carts/:cid', async (req, res) => {
-  const cartId = parseInt(req.params.cid);
-  const cart = await cartManager.getCartById(cartId);
-
-  if (!cart) return res.status(404).json({ error: 'Carrito no encontrado' });
-
-  res.json(cart);
-});
-
-app.post('/api/carts/:cid/product/:pid', async (req, res) => {
-  const cartId = parseInt(req.params.cid);
-  const productId = parseInt(req.params.pid);
-
-  const updatedCart = await cartManager.addProductToCart(cartId, productId);
-
-  if (!updatedCart) return res.status(404).json({ error: 'Carrito no encontrado' });
-
-  res.json(updatedCart);
-});
-
-
-io.on('connection', async socket => {
-    console.log('Cliente conectado');
-
-
-    const products = await productManager.getProducts();
-    socket.emit('updateProducts', products);
-
- 
-    socket.on('newProduct', async (product) => {
-        await productManager.addProduct(product);
-        const updatedProducts = await productManager.getProducts();
-        io.emit('updateProducts', updatedProducts); 
-    });
-
-    socket.on('deleteProduct', async (id) => {
-        await productManager.deleteProduct(id);
-        const updatedProducts = await productManager.getProducts();
-        io.emit('updateProducts', updatedProducts);  
-    });
-});
-
-
-server.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+app.engine('handlebars', handlebars.engine({
+  helpers: {
+    multiply: (a, b) => a * b,
+    calculateTotal: (products) => {
+      return products.reduce((total, item) => total + item.quantity * item.product.price, 0).toFixed(2);
+    }
+  }
+}));
