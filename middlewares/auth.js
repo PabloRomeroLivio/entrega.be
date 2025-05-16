@@ -15,7 +15,7 @@ export function isPremium(req, res, next) {
 
 export function ensureAuthenticated(req, res, next) {
   if (req.session?.user) return next();
-  return res.redirect('/login'); // Para proteger vistas
+  return res.redirect('/login'); 
 }
 
 export function authorizeRoles(...roles) {

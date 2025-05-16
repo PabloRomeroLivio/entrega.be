@@ -5,7 +5,7 @@ import Cart from '../models/Cart.js';
 
 const router = Router();
 
-// Registro
+
 router.post('/register', async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -38,17 +38,16 @@ router.post('/login', async (req, res) => {
       role: user.role,
     };
 
-    // Crear carrito si no tiene
+
     if (!user.cart) {
       const newCart = await Cart.create({ products: [] });
       user.cart = newCart._id;
       await user.save();
     }
 
-    // Guardar cartId en la sesión
+   
     req.session.cartId = user.cart.toString();
 
-    // Redirigir al listado de productos
     res.redirect('/products');
 
   } catch (error) {
@@ -56,7 +55,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Logout
+
 router.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) return res.status(500).json({ error: 'Error al cerrar sesión' });

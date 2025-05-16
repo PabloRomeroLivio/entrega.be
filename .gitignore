@@ -6,7 +6,7 @@ yarn-error.log
 # Entorno local
 .env
 
-# MongoDB files (no es necesario almacenar los archivos de la base de datos)
+# MongoDB files 
 data/
 
 # Archivos de logs

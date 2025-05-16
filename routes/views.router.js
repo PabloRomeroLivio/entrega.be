@@ -5,7 +5,6 @@ import { isAuthenticated } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-// Vista del home
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find().lean();
@@ -15,23 +14,22 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Vista de login
+
 router.get('/login', (req, res) => {
   res.render('login');
 });
 
-// Vista de registro
+
 router.get('/register', (req, res) => {
   res.render('register');
 });
 
-// Vista de perfil (requiere sesión activa)
+
 router.get('/profile', (req, res) => {
   if (!req.session.user) return res.send('No estás logueado');
   res.send(`Sesión activa: ${req.session.user.email} (${req.session.user.role})`);
 });
 
-// Vista de productos paginados
 router.get('/products', isAuthenticated, async (req, res) => {
   try {
     const { limit = 10, page = 1, sort, query } = req.query;
@@ -69,7 +67,7 @@ router.get('/products', isAuthenticated, async (req, res) => {
   }
 });
 
-// Vista de detalle de producto
+
 router.get('/products/:pid', async (req, res) => {
   try {
     const product = await Product.findById(req.params.pid).lean();
@@ -80,7 +78,7 @@ router.get('/products/:pid', async (req, res) => {
   }
 });
 
-// Vista del carrito del usuario
+
 router.get('/cart', async (req, res) => {
   try {
     const cartId = req.session.cartId;
