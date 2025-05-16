@@ -1,11 +1,11 @@
-
 import { Router } from 'express';
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
+import Cart from '../models/Cart.js';
 
 const router = Router();
 
-
+// Registro
 router.post('/register', async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -16,13 +16,13 @@ router.post('/register', async (req, res) => {
     const user = new User({ email, password: hashedPassword, role });
     await user.save();
 
-    res.status(201).json({ message: 'Usuario registrado' });
+    res.redirect('/login');
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-
+// Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -38,17 +38,30 @@ router.post('/login', async (req, res) => {
       role: user.role,
     };
 
-    res.json({ message: 'Login exitoso' });
+    // Crear carrito si no tiene
+    if (!user.cart) {
+      const newCart = await Cart.create({ products: [] });
+      user.cart = newCart._id;
+      await user.save();
+    }
+
+    // Guardar cartId en la sesión
+    req.session.cartId = user.cart.toString();
+
+    // Redirigir al listado de productos
+    res.redirect('/products');
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+// Logout
 router.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) return res.status(500).json({ error: 'Error al cerrar sesión' });
     res.clearCookie('connect.sid');
-    res.json({ message: 'Logout exitoso' });
+    res.redirect('/login');
   });
 });
 

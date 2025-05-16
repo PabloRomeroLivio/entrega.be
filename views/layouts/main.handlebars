@@ -1,10 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>{{title}}</title>
 </head>
 <body>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/products">Productos</a>
+    <a href="/cart">Carrito</a>
+
+    {{#if user}}
+      <span>Bienvenido {{user.email}}</span>
+      <form action="/api/auth/logout" method="POST" style="display:inline;">
+        <button type="submit">Cerrar sesión</button>
+      </form>
+    {{else}}
+      <a href="/login">Login</a>
+      <a href="/register">Registro</a>
+    {{/if}}
+  </nav>
+
+  <hr>
+
   {{{body}}}
 </body>
 </html>

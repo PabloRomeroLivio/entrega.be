@@ -1,0 +1,12 @@
+<h1>Registro</h1>
+<form method="POST" action="/api/auth/register">
+  <input type="email" name="email" placeholder="Email" required />
+  <input type="password" name="password" placeholder="Contraseña" required />
+  <select name="role">
+    <option value="user">User</option>
+    <option value="premium">Premium</option>
+    <option value="admin">Admin</option>
+  </select>
+  <button type="submit">Registrarse</button>
+</form>
+<a href="/login">Iniciar sesión</a>
